@@ -23,12 +23,20 @@ export class GodotItem extends vscode.TreeItem {
       };
 
       // Icons
-      if (label.endsWith(".tscn")) {
-        this.iconPath = new vscode.ThemeIcon("symbol-event");
-      } else if (label.endsWith(".gd")) {
-        this.iconPath = new vscode.ThemeIcon("symbol-class");
-      } else if (label.endsWith(".tres") || label.endsWith(".res")) {
-        this.iconPath = new vscode.ThemeIcon("symbol-variable");
+      // Icons
+      const ext = path.extname(label).toLowerCase();
+      if (ext === '.tscn' || ext === '.scn') {
+        this.iconPath = new vscode.ThemeIcon('layout-sidebar-left-off');
+      } else if (ext === '.gd' || ext === '.cs') {
+        this.iconPath = new vscode.ThemeIcon('file-code');
+      } else if (ext === '.tres' || ext === '.res') {
+        this.iconPath = new vscode.ThemeIcon('symbol-variable');
+      } else if (['.png', '.svg', '.jpg', '.jpeg', '.bmp', '.tga', '.webp'].includes(ext)) {
+        this.iconPath = new vscode.ThemeIcon('file-media');
+      } else if (['.wav', '.ogg', '.mp3'].includes(ext)) {
+        this.iconPath = new vscode.ThemeIcon('radio-tower');
+      } else if (['.txt', '.md', '.json', '.cfg', '.ini'].includes(ext)) {
+        this.iconPath = new vscode.ThemeIcon('file-text');
       } else {
         this.iconPath = vscode.ThemeIcon.File;
       }
@@ -48,6 +56,13 @@ const IGNORE_EXACT = new Set([
   ".vs",
   "node_modules",
 ]);
+
+// Helper to convert simple glob to regex
+function globToRegex(glob: string): RegExp {
+  const escaped = glob.replace(/[.+^${}()|[\]\\]/g, '\\$&');
+  const pattern = escaped.replace(/\*/g, '.*').replace(/\?/g, '.');
+  return new RegExp(`^${pattern}$`);
+}
 
 export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<
@@ -70,7 +85,13 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     if (!workspace) return [];
 
     const rootPath = workspace.uri.fsPath;
-    const showHidden = vscode.workspace.getConfiguration('gdstructure').get('showGodotInternal', false);
+    const config = vscode.workspace.getConfiguration('gdstructure');
+    const showHidden = config.get('showGodotInternal', false);
+    const sortOrder = config.get('sortOrder', 'godot');
+    const userIgnore = config.get<string[]>('ignore', []);
+    
+    // Convert user ignore globs to regex
+    const ignoreRegexes = userIgnore.map(globToRegex);
 
     // Fake "res://" root
     if (!item) {
@@ -82,8 +103,15 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
         .readdirSync(item.fullPath, { withFileTypes: true })
         .filter((e) => {
           if (showHidden) return true; // Show everything if setting is on
+          
+          // Check standard ignores
           if (IGNORE_EXACT.has(e.name)) return false;
-          if (e.name.endsWith(".import")) return false; // Strict filtering
+          if (e.name.endsWith(".import")) return false; 
+          if (e.name.endsWith(".uid")) return false; // Strict filtering
+          
+          // Check user ignores
+          if (ignoreRegexes.some(r => r.test(e.name))) return false;
+
           return true;
         })
         .map(
@@ -95,16 +123,20 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
             )
         )
         .sort((a, b) => {
-          // 1. Directories first
+          // 1. Directories first (always)
           if (a.isDir !== b.isDir) {
             return a.isDir ? -1 : 1;
           }
-          // 2. Sort by type (Scene > Script > Resource > Other)
-          const typeA = this.getFileTypePriority(a.label);
-          const typeB = this.getFileTypePriority(b.label);
-          if (typeA !== typeB) {
-            return typeA - typeB;
+          
+          // 2. Sort Order Strategy
+          if (sortOrder === 'godot') {
+            const typeA = this.getFileTypePriority(a.label);
+            const typeB = this.getFileTypePriority(b.label);
+            if (typeA !== typeB) {
+              return typeA - typeB;
+            }
           }
+          
           // 3. Alphabetical
           return a.label.localeCompare(b.label);
         });

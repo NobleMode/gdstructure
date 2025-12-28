@@ -73,11 +73,37 @@
           "type": "boolean",
           "default": false,
           "description": "Show hidden Godot files (.import, .godot, etc.)"
+        },
+        "gdstructure.sortOrder": {
+          "type": "string",
+          "enum": [
+            "godot",
+            "alphabetical"
+          ],
+          "default": "godot",
+          "description": "Sort order of files (Godot style: Scenes > Scripts > Resources, or simple Alphabetical)"
+        },
+        "gdstructure.ignore": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional file patterns to ignore (e.g. '*.tmp', 'junk/')"
         }
       }
     },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gdstructure-view",
+          "title": "Godot",
+          "icon": "resources/godot.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "gdstructure-view": [
         {
           "id": "gdstructure",
           "name": "Godot Files"
