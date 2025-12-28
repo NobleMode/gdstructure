@@ -52,9 +52,34 @@
         "title": "Unpin from Favorites",
         "category": "Godot",
         "icon": "$(pinned)"
+      },
+      {
+        "command": "gdstructure.openInGodot",
+        "title": "Open in Godot Editor",
+        "category": "Godot",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "gdstructure.reconnect",
+        "title": "Reconnect to Godot Editor",
+        "category": "Godot",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "gdstructure.toggleAutoSync",
+        "title": "Toggle Godot Selection Sync",
+        "category": "Godot",
+        "icon": "$(sync)"
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "gdstructure.toggleAutoSync",
+          "group": "navigation",
+          "when": "view == gdstructure"
+        }
+      ],
       "view/item/context": [
         {
           "command": "gdstructure.copyResPath",
@@ -64,6 +89,11 @@
         {
           "command": "gdstructure.revealInExplorer",
           "when": "view == gdstructure",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.openInGodot",
+          "when": "view == gdstructure && !item.isDir",
           "group": "navigation"
         },
         {
@@ -96,6 +126,11 @@
           "default": false,
           "description": "Show hidden Godot files (.import, .godot, etc.)"
         },
+        "gdstructure.autoSyncSelection": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically select files in Godot Editor when clicked in VS Code"
+        },
         "gdstructure.sortOrder": {
           "type": "string",
           "enum": [
@@ -112,6 +147,11 @@
           },
           "default": [],
           "description": "Additional file patterns to ignore (e.g. '*.tmp', 'junk/')"
+        },
+        "gdstructure.lspPort": {
+          "type": "number",
+          "default": 6005,
+          "description": "Port to connect to Godot Editor (default 6005)"
         }
       }
     },
@@ -148,15 +188,19 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.107.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
-    "typescript-eslint": "^8.48.1",
-    "eslint": "^9.39.1",
+    "@types/vscode": "^1.107.0",
+    "@types/ws": "^8.18.1",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
     "esbuild": "^0.27.1",
+    "eslint": "^9.39.1",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
-    "@vscode/test-cli": "^0.0.12",
-    "@vscode/test-electron": "^2.5.2"
+    "typescript-eslint": "^8.48.1"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }

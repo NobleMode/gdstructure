@@ -21,9 +21,9 @@ export class GodotItem extends vscode.TreeItem {
 
     if (!isDir) {
       this.command = {
-        command: "vscode.open",
-        title: "Open",
-        arguments: [vscode.Uri.file(fullPath)],
+        command: "gdstructure.clickFile",
+        title: "Open File",
+        arguments: [fullPath],
       };
       
       this.contextValue = isPinned ? 'pinned-file' : 'file';
@@ -97,8 +97,6 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     const showHidden = config.get('showGodotInternal', false);
     const sortOrder = config.get('sortOrder', 'godot');
     const userIgnore = config.get<string[]>('ignore', []);
-    
-    // Convert user ignore globs to regex
     const ignoreRegexes = userIgnore.map(globToRegex);
 
     // Root Level logic
@@ -116,7 +114,6 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
 
         // 2. The actual res:// root
         items.push(new GodotItem("res://", rootPath, true));
-        
         return items;
     }
 
