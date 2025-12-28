@@ -20,8 +20,62 @@
       {
         "command": "gdstructure.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "gdstructure.copyResPath",
+        "title": "Copy res:// Path",
+        "category": "Godot"
+      },
+      {
+        "command": "gdstructure.revealInExplorer",
+        "title": "Reveal in File Explorer",
+        "category": "Godot"
+      },
+      {
+        "command": "gdstructure.delete",
+        "title": "Delete",
+        "category": "Godot"
+      },
+      {
+        "command": "gdstructure.rename",
+        "title": "Rename",
+        "category": "Godot"
       }
     ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "gdstructure.copyResPath",
+          "when": "view == gdstructure",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.revealInExplorer",
+          "when": "view == gdstructure",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.rename",
+          "when": "view == gdstructure",
+          "group": "edit"
+        },
+        {
+          "command": "gdstructure.delete",
+          "when": "view == gdstructure",
+          "group": "edit"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Godot Structure",
+      "properties": {
+        "gdstructure.showGodotInternal": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show hidden Godot files (.import, .godot, etc.)"
+        }
+      }
+    },
     "views": {
       "explorer": [
         {

@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import * as path from "path";
 
-class GodotItem extends vscode.TreeItem {
+export class GodotItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly fullPath: string,
@@ -70,6 +70,7 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     if (!workspace) return [];
 
     const rootPath = workspace.uri.fsPath;
+    const showHidden = vscode.workspace.getConfiguration('gdstructure').get('showGodotInternal', false);
 
     // Fake "res://" root
     if (!item) {
@@ -80,6 +81,7 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
       return fs
         .readdirSync(item.fullPath, { withFileTypes: true })
         .filter((e) => {
+          if (showHidden) return true; // Show everything if setting is on
           if (IGNORE_EXACT.has(e.name)) return false;
           if (e.name.endsWith(".import")) return false; // Strict filtering
           return true;
