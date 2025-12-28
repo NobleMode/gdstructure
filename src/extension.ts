@@ -3,7 +3,7 @@ import * as path from 'path';
 import { GodotResProvider, GodotItem } from './resProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-  const provider = new GodotResProvider();
+  const provider = new GodotResProvider(context);
 
   // 1. Register Tree Data Provider
   context.subscriptions.push(
@@ -23,14 +23,6 @@ export function activate(context: vscode.ExtensionContext) {
   // 3. Register Context Menu Commands
   context.subscriptions.push(
     vscode.commands.registerCommand('gdstructure.copyResPath', (item: GodotItem) => {
-        // label might be a filename, we need the full res:// path?
-        // Actually GodotItem doesn't hold res:// path except implicitly (?)
-        // Let's implement a helper or just construct it.
-        // Wait, GodotItem label is just the name.
-        // We need a way to get the res:// path.
-        // Let's assume root is res://
-        
-        // Simpler: Just get workspace relative path and prepend res://
         const workspace = vscode.workspace.workspaceFolders?.[0];
         if (!workspace) return;
         const relative = path.relative(workspace.uri.fsPath, item.fullPath);
@@ -60,6 +52,12 @@ export function activate(context: vscode.ExtensionContext) {
             const newUri = vscode.Uri.file(path.join(path.dirname(item.fullPath), newName));
             await vscode.workspace.fs.rename(oldUri, newUri);
         }
+    }),
+    vscode.commands.registerCommand('gdstructure.pinResource', async (item: GodotItem) => {
+        await provider.pinResource(item);
+    }),
+    vscode.commands.registerCommand('gdstructure.unpinResource', async (item: GodotItem) => {
+        await provider.unpinResource(item);
     })
   );
 

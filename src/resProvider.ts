@@ -6,7 +6,8 @@ export class GodotItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly fullPath: string,
-    public readonly isDir: boolean
+    public readonly isDir: boolean,
+    public readonly isPinned: boolean = false
   ) {
     super(
       label,
@@ -15,14 +16,18 @@ export class GodotItem extends vscode.TreeItem {
         : vscode.TreeItemCollapsibleState.None
     );
 
+    // Tooltip (Power User Feature)
+    this.tooltip = fullPath;
+
     if (!isDir) {
       this.command = {
         command: "vscode.open",
         title: "Open",
         arguments: [vscode.Uri.file(fullPath)],
       };
+      
+      this.contextValue = isPinned ? 'pinned-file' : 'file';
 
-      // Icons
       // Icons
       const ext = path.extname(label).toLowerCase();
       if (ext === '.tscn' || ext === '.scn') {
@@ -42,6 +47,7 @@ export class GodotItem extends vscode.TreeItem {
       }
     } else {
       this.iconPath = vscode.ThemeIcon.Folder;
+      this.contextValue = 'folder';
     }
   }
 }
@@ -72,6 +78,8 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     GodotItem | undefined | null | void
   > = this._onDidChangeTreeData.event;
 
+  constructor(private context: vscode.ExtensionContext) {}
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
@@ -93,23 +101,45 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     // Convert user ignore globs to regex
     const ignoreRegexes = userIgnore.map(globToRegex);
 
-    // Fake "res://" root
+    // Root Level logic
     if (!item) {
-      return [new GodotItem("res://", rootPath, true)];
+        const items: GodotItem[] = [];
+        
+        // 1. Favorites (Pinned) Group
+        const pinned = this.getPinnedPaths();
+        if (pinned.length > 0) {
+            const favRoot = new GodotItem("⭐ Favorites", "", true);
+            favRoot.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
+            favRoot.contextValue = 'favorites-root';
+            items.push(favRoot);
+        }
+
+        // 2. The actual res:// root
+        items.push(new GodotItem("res://", rootPath, true));
+        
+        return items;
     }
 
+    // Handle Favorites Group
+    if (item.label === "⭐ Favorites") {
+        const pinned = this.getPinnedPaths();
+        return pinned.map(p => {
+            const name = path.basename(p);
+            return new GodotItem(name, p, false, true);
+        });
+    }
+
+    // Normal Filesystem handling
     try {
       return fs
         .readdirSync(item.fullPath, { withFileTypes: true })
         .filter((e) => {
-          if (showHidden) return true; // Show everything if setting is on
+          if (showHidden) return true; 
           
-          // Check standard ignores
           if (IGNORE_EXACT.has(e.name)) return false;
           if (e.name.endsWith(".import")) return false; 
-          if (e.name.endsWith(".uid")) return false; // Strict filtering
+          if (e.name.endsWith(".uid")) return false;
           
-          // Check user ignores
           if (ignoreRegexes.some(r => r.test(e.name))) return false;
 
           return true;
@@ -123,12 +153,10 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
             )
         )
         .sort((a, b) => {
-          // 1. Directories first (always)
           if (a.isDir !== b.isDir) {
             return a.isDir ? -1 : 1;
           }
           
-          // 2. Sort Order Strategy
           if (sortOrder === 'godot') {
             const typeA = this.getFileTypePriority(a.label);
             const typeB = this.getFileTypePriority(b.label);
@@ -137,7 +165,6 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
             }
           }
           
-          // 3. Alphabetical
           return a.label.localeCompare(b.label);
         });
     } catch {
@@ -150,5 +177,25 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     if (name.endsWith(".gd")) return 2;
     if (name.endsWith(".tres") || name.endsWith(".res")) return 3;
     return 4;
+  }
+
+  // Favorites Logic
+  private getPinnedPaths(): string[] {
+      return this.context.workspaceState.get<string[]>('pinnedResources', []);
+  }
+
+  public async pinResource(item: GodotItem) {
+      const current = this.getPinnedPaths();
+      if (!current.includes(item.fullPath)) {
+          await this.context.workspaceState.update('pinnedResources', [...current, item.fullPath]);
+          this.refresh();
+      }
+  }
+
+  public async unpinResource(item: GodotItem) {
+      const current = this.getPinnedPaths();
+      const newPath = current.filter(p => p !== item.fullPath);
+      await this.context.workspaceState.update('pinnedResources', newPath);
+      this.refresh();
   }
 }

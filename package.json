@@ -40,6 +40,18 @@
         "command": "gdstructure.rename",
         "title": "Rename",
         "category": "Godot"
+      },
+      {
+        "command": "gdstructure.pinResource",
+        "title": "Pin to Favorites",
+        "category": "Godot",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "gdstructure.unpinResource",
+        "title": "Unpin from Favorites",
+        "category": "Godot",
+        "icon": "$(pinned)"
       }
     ],
     "menus": {
@@ -52,6 +64,16 @@
         {
           "command": "gdstructure.revealInExplorer",
           "when": "view == gdstructure",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.pinResource",
+          "when": "view == gdstructure && viewItem == file",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.unpinResource",
+          "when": "view == gdstructure && viewItem == pinned-file",
           "group": "navigation"
         },
         {
