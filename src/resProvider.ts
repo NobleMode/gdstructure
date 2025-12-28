@@ -41,6 +41,7 @@ class GodotItem extends vscode.TreeItem {
 // Godot noise we don't want to see
 const IGNORE_EXACT = new Set([
   ".godot",
+  ".godot_ide",
   ".vscode",
   ".idea",
   ".git",
