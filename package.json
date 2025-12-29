@@ -70,23 +70,12 @@
         "title": "Toggle Godot Selection Sync",
         "category": "Godot",
         "icon": "$(sync)"
-      },
-      {
-        "command": "gdstructure.toggleSceneNesting",
-        "title": "Toggle Scene Nesting",
-        "category": "Godot",
-        "icon": "$(list-tree)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "gdstructure.toggleAutoSync",
-          "group": "navigation",
-          "when": "view == gdstructure"
-        },
-        {
-          "command": "gdstructure.toggleSceneNesting",
           "group": "navigation",
           "when": "view == gdstructure"
         }
@@ -141,11 +130,6 @@
           "type": "boolean",
           "default": false,
           "description": "Automatically select files in Godot Editor when clicked in VS Code"
-        },
-        "gdstructure.sceneNesting": {
-          "type": "boolean",
-          "default": false,
-          "description": "Nest scripts under their corresponding scenes (e.g. player.gd under player.tscn)"
         },
         "gdstructure.sortOrder": {
           "type": "string",

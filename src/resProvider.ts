@@ -103,7 +103,6 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
     const rootPath = workspace.uri.fsPath;
     const config = vscode.workspace.getConfiguration('gdstructure');
     const showHidden = config.get('showGodotInternal', false);
-    const sceneNesting = config.get('sceneNesting', false);
     const sortOrder = config.get('sortOrder', 'godot');
     const userIgnore = config.get<string[]>('ignore', []);
     const ignoreRegexes = userIgnore.map(globToRegex);
@@ -142,44 +141,14 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
         });
     }
 
-    // SCENE NESTING: Expanding a Scene File
-    if (sceneNesting && !item.isDir && (item.label.endsWith('.tscn') || item.label.endsWith('.scn'))) {
-        // Return the nested script if it exists
-        const base = path.basename(item.fullPath, path.extname(item.fullPath));
-        const dir = path.dirname(item.fullPath);
-        
-        const candidates = ['.gd', '.cs']; // Possible script extensions
-        const children: GodotItem[] = [];
-        
-        for (const ext of candidates) {
-            const scriptPath = path.join(dir, base + ext);
-            if (fs.existsSync(scriptPath)) {
-                children.push(new GodotItem(base + ext, scriptPath, false));
-            }
-        }
-        return children;
-    }
-    
     // Normal Filesystem handling (Directory)
     if (!fs.existsSync(item.fullPath) || !fs.statSync(item.fullPath).isDirectory()) {
          return [];
     }
 
     try {
-      const allFiles = fs.readdirSync(item.fullPath, { withFileTypes: true });
-      
-      // Pre-calculation for Scene Nesting
-      const scenes = new Set<string>();
-      if (sceneNesting) {
-          allFiles.forEach(f => {
-              if (f.name.endsWith('.tscn') || f.name.endsWith('.scn')) {
-                  const base = path.basename(f.name, path.extname(f.name));
-                  scenes.add(base);
-              }
-          });
-      }
-
-      return allFiles
+      return fs
+        .readdirSync(item.fullPath, { withFileTypes: true })
         .filter((e) => {
           if (showHidden) return true; 
           
@@ -188,15 +157,6 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
           if (e.name.endsWith(".uid")) return false;
           
           if (ignoreRegexes.some(r => r.test(e.name))) return false;
-          
-          // SCENE NESTING: Hide script if parent scene exists
-          if (sceneNesting && !e.isDirectory()) {
-              const ext = path.extname(e.name);
-              if (ext === '.gd' || ext === '.cs') {
-                  const base = path.basename(e.name, ext);
-                  if (scenes.has(base)) return false; // Hide it!
-              }
-          }
 
           return true;
         })
@@ -204,25 +164,7 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
           (e) => {
              const fullPath = path.join(item.fullPath, e.name);
              const isDir = e.isDirectory();
-             
-             // SCENE NESTING: If it's a scene and has a script, make it collapsible
-             let collapsible = false;
-             if (!isDir && sceneNesting && (e.name.endsWith('.tscn') || e.name.endsWith('.scn'))) {
-                 const base = path.basename(e.name, path.extname(e.name));
-                 // Check if script exists
-                 const scriptGd = path.join(item.fullPath, base + '.gd');
-                 const scriptCs = path.join(item.fullPath, base + '.cs');
-                 if (fs.existsSync(scriptGd) || fs.existsSync(scriptCs)) {
-                     collapsible = true;
-                 }
-             }
-
-             const gItem = new GodotItem(e.name, fullPath, isDir);
-             if (collapsible) {
-                 // Force collapsible state for the scene
-                 gItem.collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
-             }
-             return gItem;
+             return new GodotItem(e.name, fullPath, isDir);
           }
         )
         .sort((a, b) => {

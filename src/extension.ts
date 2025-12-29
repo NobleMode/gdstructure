@@ -48,14 +48,6 @@ export function activate(context: vscode.ExtensionContext) {
         await config.update('autoSyncSelection', !current, vscode.ConfigurationTarget.Global);
         updateSyncStatus();
     }),
-    vscode.commands.registerCommand('gdstructure.toggleSceneNesting', async () => {
-        const config = vscode.workspace.getConfiguration('gdstructure');
-        const current = config.get('sceneNesting', false);
-        const newState = !current;
-        await config.update('sceneNesting', newState, vscode.ConfigurationTarget.Global);
-        vscode.window.showInformationMessage(`Scene Nesting: ${newState ? 'Enabled' : 'Disabled'}`);
-        provider.refresh(); // Force immediate refresh
-    }),
     vscode.commands.registerCommand('gdstructure.clickFile', async (fullPath: string) => {
         // 1. Open in VS Code
         vscode.commands.executeCommand('vscode.open', vscode.Uri.file(fullPath));
