@@ -98,7 +98,7 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
 
   getChildren(item?: GodotItem): GodotItem[] {
     const workspace = vscode.workspace.workspaceFolders?.[0];
-    if (!workspace) return [];
+    if (!workspace) { return []; }
 
     const rootPath = workspace.uri.fsPath;
     const config = vscode.workspace.getConfiguration('gdstructure');
@@ -150,13 +150,13 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
       return fs
         .readdirSync(item.fullPath, { withFileTypes: true })
         .filter((e) => {
-          if (showHidden) return true; 
+          if (showHidden) { return true; }
           
-          if (IGNORE_EXACT.has(e.name)) return false;
-          if (e.name.endsWith(".import")) return false; 
-          if (e.name.endsWith(".uid")) return false;
+          if (IGNORE_EXACT.has(e.name)) { return false; }
+          if (e.name.endsWith(".import")) { return false; }
+          if (e.name.endsWith(".uid")) { return false; }
           
-          if (ignoreRegexes.some(r => r.test(e.name))) return false;
+          if (ignoreRegexes.some(r => r.test(e.name))) { return false; }
 
           return true;
         })
@@ -188,9 +188,9 @@ export class GodotResProvider implements vscode.TreeDataProvider<GodotItem> {
   }
 
   private getFileTypePriority(name: string): number {
-    if (name.endsWith(".tscn")) return 1;
-    if (name.endsWith(".gd")) return 2;
-    if (name.endsWith(".tres") || name.endsWith(".res")) return 3;
+    if (name.endsWith(".tscn")) { return 1; }
+    if (name.endsWith(".gd")) { return 2; }
+    if (name.endsWith(".tres") || name.endsWith(".res")) { return 3; }
     return 4;
   }
 

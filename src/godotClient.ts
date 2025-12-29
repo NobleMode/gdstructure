@@ -118,7 +118,7 @@ export class GodotClient {
     }
     
     public dispose() {
-        if (this.retryTimer) clearTimeout(this.retryTimer);
+        if (this.retryTimer) { clearTimeout(this.retryTimer); }
         this.client?.destroy();
         this.statusBarItem.dispose();
     }

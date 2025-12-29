@@ -132,6 +132,7 @@ export function activate(context: vscode.ExtensionContext) {
       }
   }));
 
+
   vscode.window.showInformationMessage('Godot Structure Active');
 }
 
