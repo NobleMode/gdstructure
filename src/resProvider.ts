@@ -16,6 +16,9 @@ export class GodotItem extends vscode.TreeItem {
         : vscode.TreeItemCollapsibleState.None
     );
 
+    // This enables Git decorations (S, M, U) and Error/Warning decorations
+    this.resourceUri = vscode.Uri.file(fullPath);
+    
     // Tooltip (Power User Feature)
     this.tooltip = fullPath;
 
@@ -29,24 +32,28 @@ export class GodotItem extends vscode.TreeItem {
       this.contextValue = isPinned ? 'pinned-file' : 'file';
 
       // Icons
+      // We keep custom icons for Godot types, but let VS Code handle specific media/code icons if we want.
+      // Actually, standard File Icon Integration works best if we use ThemeIcon.File or just don't set iconPath?
+      // If we set resourceUri, VS Code provides a default file icon based on file extension.
+      // BUT we want our specific Godot icons (Scene, Script, Res).
       const ext = path.extname(label).toLowerCase();
       if (ext === '.tscn' || ext === '.scn') {
         this.iconPath = new vscode.ThemeIcon('layout-sidebar-left-off');
       } else if (ext === '.gd' || ext === '.cs') {
+         // Let VS Code theme handle .cs? 
+         // For consistency we keep our "script" icon for .gd
         this.iconPath = new vscode.ThemeIcon('file-code');
       } else if (ext === '.tres' || ext === '.res') {
         this.iconPath = new vscode.ThemeIcon('symbol-variable');
-      } else if (['.png', '.svg', '.jpg', '.jpeg', '.bmp', '.tga', '.webp'].includes(ext)) {
-        this.iconPath = new vscode.ThemeIcon('file-media');
-      } else if (['.wav', '.ogg', '.mp3'].includes(ext)) {
-        this.iconPath = new vscode.ThemeIcon('radio-tower');
-      } else if (['.txt', '.md', '.json', '.cfg', '.ini'].includes(ext)) {
-        this.iconPath = new vscode.ThemeIcon('file-text');
       } else {
-        this.iconPath = vscode.ThemeIcon.File;
+        // For other files (png, svg, json), let's defer to the standard File Icon Theme if possible.
+        // If we leave iconPath undefined, VS Code uses the Theme icon for the resourceUri!
+        // This is BETTER than our manual mapping logic.
+        // So we only override for the Godot types we care about.
       }
     } else {
-      this.iconPath = vscode.ThemeIcon.Folder;
+      // For folders, if we don't set iconPath, it uses the Theme Folder icon.
+      // VS Code Theme Folder icon corresponds to resourceUri.
       this.contextValue = 'folder';
     }
   }

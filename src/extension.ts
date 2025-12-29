@@ -108,7 +108,16 @@ export function activate(context: vscode.ExtensionContext) {
   const watcher = vscode.workspace.createFileSystemWatcher('**/*');
   context.subscriptions.push(watcher);
   
-  const refresh = () => provider.refresh();
+  let refreshTimer: NodeJS.Timeout | null = null;
+  const refresh = () => {
+      if (refreshTimer) {
+          clearTimeout(refreshTimer);
+      }
+      refreshTimer = setTimeout(() => {
+          provider.refresh();
+          refreshTimer = null;
+      }, 100);
+  };
   
   context.subscriptions.push(watcher.onDidCreate(refresh));
   context.subscriptions.push(watcher.onDidDelete(refresh));

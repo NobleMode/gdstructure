@@ -1,71 +1,62 @@
-# gdstructure README
+# Godot Project Explorer for VS Code 🤖
 
-This is the README for your extension "gdstructure". After writing up a brief description, we recommend including the following sections.
+An advanced "Godot-Native" file explorer for Visual Studio Code. View your project exactly as you see it in the Godot Editor (cleaned, sorted, and focused), with powerful integration features.
 
-## Features
+![Banner](resources/godot.svg)
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+## Features ✨
 
-For example if there is an image subfolder under your extension project workspace:
+### 1. The `res://` Tree View
+A dedicated **Activity Bar** icon (Godot logo) that shows your project structure:
+*   **Clean**: Auto-hides `.import` files, `.godot/` folders, and build artifacts.
+*   **Sorted**: Follows Godot's logic (Folders first -> Scenes -> Scripts -> Resources).
+*   **Smart Icons**: Custom icons for Scenes (`.tscn`), Scripts (`.zgd`), and Resources (`.tres`).
 
-\!\[feature X\]\(images/feature-x.png\)
+### 2. Godot Editor Sync 🔌
+Direct TCP connection to the running Godot Editor (Port 6005).
+*   **Open in Godot**: Right-click any file -> `Open in Godot Editor`.
+*   **Auto-Sync**: Click a file in VS Code -> It instantly highlights/focuses in the Godot FileSystem dock.
+    *   *Toggle via Status Bar*: `$(sync) Sync: On/Off`.
+*   **Status Bar**: `$(plug) Godot: On` indicates a live connection.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+### 3. Favorites ⭐
+Pin your most-used assets to the top of the tree.
+*   Right-click -> `Pin to Favorites`.
+*   Access them instantly from the **⭐ Favorites** group at the top.
 
-## Requirements
+### 4. Git & Diagnostics 🟢🔴
+Full integration with VS Code's SCM and Error decoration system.
+*   **Git**: Files show Green (Added), Yellow (Modified), or Red (Deleted) status.
+*   **Errors**: Files with script errors are highlighted in Red/Yellow.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+## Setup ⚙️
 
-## Extension Settings
+1.  Open your Godot Project folder in VS Code.
+2.  The extension activates automatically when it detects `project.godot`.
+3.  **For Sync**: Ensure Godot Editor is running!
+    *   Godot Default Port is `6005` (Settings -> Editor -> Network -> Language Server).
+    *   VS Code uses `6005` by default (Configurable).
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Configuration 🔧
 
-For example:
+| Setting | Default | Description |
+| :--- | :--- | :--- |
+| `gdstructure.autoSyncSelection` | `false` | Automatically select files in Godot when clicked in VS Code. |
+| `gdstructure.showGodotInternal` | `false` | Show hidden files like `.import`, `.godot` folder, etc. |
+| `gdstructure.sortOrder` | `godot` | Sort files like Godot (Scenes > Scripts) or simply `alphabetical`. |
+| `gdstructure.ignore` | `[]` | Array of glob patterns to hide specific files/folders. |
+| `gdstructure.lspPort` | `6005` | Port for connecting to the Godot Editor. |
 
-This extension contributes the following settings:
+## Troubleshooting ❓
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+**"Godot: Off" in Status Bar?**
+*   Is Godot Open?
+*   Is the Language Server enabled in Godot Editor Settings?
+*   Are you using a custom port? Check `gdstructure.lspPort`.
 
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+**"WebSocket Closed" / "Handshake Timeout"?**
+*   The extension uses raw TCP (Standard LSP). Ensure Godot is listening on `127.0.0.1` or `localhost`.
+*   Try clicking the Status Bar item to force a reconnect.
 
 ---
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+*Created with ❤️ for the Godot Community.*
