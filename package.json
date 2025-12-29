@@ -2,10 +2,14 @@
   "name": "gdstructure",
   "displayName": "gdstructure",
   "description": " Godot-style res:// explorer for VS Code",
-  "version": "0.0.1",
-  "publisher": "myname",
+  "version": "0.3.0",
+  "publisher": "NobleMode",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NobleMode/gdstructure"
+  },
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.107.0"
   },
   "categories": [
     "Other"

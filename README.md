@@ -2,8 +2,6 @@
 
 An advanced "Godot-Native" file explorer for Visual Studio Code. View your project exactly as you see it in the Godot Editor (cleaned, sorted, and focused), with powerful integration features.
 
-![Banner](resources/godot.svg)
-
 ## Features ✨
 
 ### 1. The `res://` Tree View
