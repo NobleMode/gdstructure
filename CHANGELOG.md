@@ -2,6 +2,19 @@
 
 All notable changes to the "gdstructure" extension will be documented in this file.
 
+
+## [0.4.2]
+
+- **Smart Move**: Moving or renaming a file also moves its `.import` sidecar, preserving Godot UIDs.
+
+## [0.4.1]
+
+- **Clipboard**: Added `Cut`, `Copy`, and `Paste` context menu items and keyboard shortcuts (`Ctrl+X/C/V`).
+
+## [0.4.0]
+
+- **Drag & Drop**: Move files and folders by dragging them within the Godot view.
+
 ## [0.3.2]
 
 - **New Feature**: Added File Creation context menus (`New File` / `New Folder`).
@@ -15,14 +28,17 @@ All notable changes to the "gdstructure" extension will be documented in this fi
 - **Fix**: Updated `when` clauses to support broader selection types.
 
 ## [0.3.0] - 2025-12-29
+
 ### Added
+
 - **Auto-Sync Selection**: Clicking files in VS Code now selects them in the Godot Editor (TCP).
 - **Git & Diagnostics**: Added native SVG decorations for Git status (Green/Yellow) and Errors (Red).
-- **Performance**: Added debounce to file system watchers to prevent flickering during bulk changes.
-- **Documentation**: Comprehensive README with setup and configuration guides.
+- **Settings**: Added configuration for file ignore patterns, sort order, and hidden file visibility.
 
 ### Changed
-- Replaced custom icon logic for generic files with VS Code's native `ThemeIcon` to support file themes.
+
+- **UI**: Added a dedicated View Container in the Activity Bar with a Godot icon.
+- **Performance**: Implemented debounce for filesystem watchers to prevent refresh spam.for generic files with VS Code's native `ThemeIcon` to support file themes.
 - Updated `package.json` with new configuration (`gdstructure.autoSyncSelection`).
 
 ## [0.2.0] - 2025-12-29

@@ -2,7 +2,7 @@
   "name": "gdstructure",
   "displayName": "gdstructure",
   "description": " Godot-style res:// explorer for VS Code",
-  "version": "0.3.2",
+  "version": "0.4.2",
   "publisher": "NobleMode",
   "repository": {
     "type": "git",
@@ -92,6 +92,41 @@
         "title": "Duplicate",
         "category": "Godot",
         "icon": "$(files)"
+      },
+      {
+        "command": "gdstructure.copy",
+        "title": "Copy",
+        "category": "Godot"
+      },
+      {
+        "command": "gdstructure.cut",
+        "title": "Cut",
+        "category": "Godot"
+      },
+      {
+        "command": "gdstructure.paste",
+        "title": "Paste",
+        "category": "Godot"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gdstructure.copy",
+        "key": "ctrl+c",
+        "mac": "cmd+c",
+        "when": "view == gdstructure && viewItem =~ /folder|file|pinned-file/"
+      },
+      {
+        "command": "gdstructure.cut",
+        "key": "ctrl+x",
+        "mac": "cmd+x",
+        "when": "view == gdstructure && viewItem =~ /folder|file|pinned-file/"
+      },
+      {
+        "command": "gdstructure.paste",
+        "key": "ctrl+v",
+        "mac": "cmd+v",
+        "when": "view == gdstructure"
       }
     ],
     "menus": {
@@ -108,6 +143,11 @@
         },
         {
           "command": "gdstructure.toggleAutoSync",
+          "group": "navigation",
+          "when": "view == gdstructure"
+        },
+        {
+          "command": "gdstructure.paste",
           "group": "navigation",
           "when": "view == gdstructure"
         }
@@ -156,6 +196,21 @@
         {
           "command": "gdstructure.duplicate",
           "when": "view == gdstructure",
+          "group": "edit"
+        },
+        {
+          "command": "gdstructure.copy",
+          "when": "view == gdstructure",
+          "group": "edit"
+        },
+        {
+          "command": "gdstructure.cut",
+          "when": "view == gdstructure",
+          "group": "edit"
+        },
+        {
+          "command": "gdstructure.paste",
+          "when": "view == gdstructure && viewItem == folder",
           "group": "edit"
         },
         {

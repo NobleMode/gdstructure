@@ -2,18 +2,20 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { GodotResProvider, GodotItem } from './resProvider';
 import { GodotClient } from './godotClient';
+import { GodotDragAndDropController } from './dragAndDropController';
+import { smartMove } from './fileUtils';
 
 export function activate(context: vscode.ExtensionContext) {
   const provider = new GodotResProvider(context);
   const client = new GodotClient(context);
 
   // 1. Register Tree Data Provider
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider(
-      'gdstructure',
-      provider
-    )
-  );
+  // We use createTreeView to enable Drag & Drop
+  const treeView = vscode.window.createTreeView('gdstructure', {
+      treeDataProvider: provider,
+      dragAndDropController: new GodotDragAndDropController(provider)
+  });
+  context.subscriptions.push(treeView);
   
   // Cleanup client on deactivate
   context.subscriptions.push(client);
@@ -93,8 +95,13 @@ export function activate(context: vscode.ExtensionContext) {
         if (newName) {
             const oldUri = vscode.Uri.file(item.fullPath);
             const newUri = vscode.Uri.file(path.join(path.dirname(item.fullPath), newName));
-            await vscode.workspace.fs.rename(oldUri, newUri);
-            provider.refresh();
+            
+            try {
+                await smartMove(oldUri, newUri);
+                provider.refresh();
+            } catch (e) {
+                vscode.window.showErrorMessage(`Rename failed: ${e}`);
+            }
         }
     }),
     vscode.commands.registerCommand('gdstructure.pinResource', async (item: GodotItem) => {
@@ -192,7 +199,74 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // 4. Auto-refresh on FS changes
+  // 5. Clipboard Support (Global state)
+  let clipboard: { op: 'copy' | 'cut', item: GodotItem } | null = null;
+
+  context.subscriptions.push(
+      vscode.commands.registerCommand('gdstructure.copy', (item: GodotItem) => {
+          if (item) {
+              clipboard = { op: 'copy', item };
+              vscode.window.setStatusBarMessage(`Copied ${item.label}`, 3000);
+          }
+      }),
+      vscode.commands.registerCommand('gdstructure.cut', (item: GodotItem) => {
+          if (item) {
+              clipboard = { op: 'cut', item };
+              vscode.window.setStatusBarMessage(`Cut ${item.label}`, 3000);
+          }
+      }),
+      vscode.commands.registerCommand('gdstructure.paste', async (target: GodotItem | undefined) => {
+          if (!clipboard) {
+              vscode.window.showInformationMessage('Clipboard is empty');
+              return;
+          }
+
+          const workspace = vscode.workspace.workspaceFolders?.[0];
+          if (!workspace) { return; }
+          
+          // Determine Destination Directory
+          let destDir = workspace.uri.fsPath;
+          if (target) {
+              destDir = target.isDir ? target.fullPath : path.dirname(target.fullPath);
+          } else {
+              // Paste into root if no target selected (via keybinding on empty space? hard to target)
+              // Actually context menu usually provides target. Keybinding passes the *selected* item.
+              // If we pressed Ctrl+V with a file selected, we probably want to paste into its parent dir.
+              // But 'target' argument comes from the command invocation. 
+              // If invoked via keybinding, target is likely the currently selected item in tree.
+          }
+
+          const sourceUri = vscode.Uri.file(clipboard.item.fullPath);
+          const fileName = path.basename(clipboard.item.fullPath);
+          const destUri = vscode.Uri.file(path.join(destDir, fileName));
+
+          if (sourceUri.fsPath === destUri.fsPath && clipboard.op === 'cut') {
+              return; // Move to same place = no-op
+          }
+
+          try {
+              if (clipboard.op === 'copy') {
+                  // If copying to same location, auto-rename
+                  let finalDestUri = destUri;
+                  if (sourceUri.fsPath === destUri.fsPath) {
+                       const ext = path.extname(fileName);
+                       const nameBody = path.basename(fileName, ext);
+                       finalDestUri = vscode.Uri.file(path.join(destDir, `${nameBody}_copy${ext}`));
+                  }
+                  await vscode.workspace.fs.copy(sourceUri, finalDestUri, { overwrite: false });
+              } else {
+                  // Cut = Move
+                  await vscode.workspace.fs.rename(sourceUri, destUri, { overwrite: false });
+                  clipboard = null; // Clear after cut
+              }
+              provider.refresh();
+          } catch (e) {
+              vscode.window.showErrorMessage(`Paste failed: ${e}`);
+          }
+      })
+  );
+
+  // 6. Auto-refresh on FS changes
   let refreshTimer: NodeJS.Timeout | null = null;
   const refresh = () => {
       if (refreshTimer) {
