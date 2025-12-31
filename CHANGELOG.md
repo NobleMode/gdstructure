@@ -3,6 +3,10 @@
 All notable changes to the "gdstructure" extension will be documented in this file.
 
 
+## [0.4.3]
+
+- **Smart Move**: Now rewrites internal `res://` paths inside `.import` and `.uid` files to correctly update references.
+
 ## [0.4.2]
 
 - **Smart Move**: Moving or renaming a file also moves its `.import` sidecar, preserving Godot UIDs.

@@ -2,7 +2,7 @@
   "name": "gdstructure",
   "displayName": "gdstructure",
   "description": " Godot-style res:// explorer for VS Code",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "publisher": "NobleMode",
   "repository": {
     "type": "git",
@@ -143,11 +143,6 @@
         },
         {
           "command": "gdstructure.toggleAutoSync",
-          "group": "navigation",
-          "when": "view == gdstructure"
-        },
-        {
-          "command": "gdstructure.paste",
           "group": "navigation",
           "when": "view == gdstructure"
         }

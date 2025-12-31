@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 /**
  * Moves a file or folder to a new location, ensuring that any associated .import file
@@ -13,21 +14,47 @@ export async function smartMove(source: vscode.Uri, dest: vscode.Uri, options: {
     await vscode.workspace.fs.rename(source, dest, options);
 
     // 2. Check for sidecar files (.import and .uid)
-    // - .import: Used for imported assets (Godot 3, 4)
-    // - .uid: Used for scripts/text resources (Godot 4.4+)
     const sidecars = ['.import', '.uid'];
+    
+    // Helper to calculate res:// path
+    const getResPath = (uri: vscode.Uri): string | null => {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (!workspace) return null;
+        const relative = path.relative(workspace.uri.fsPath, uri.fsPath);
+        return 'res://' + relative.replace(/\\/g, '/');
+    };
+
+    const sourceResPath = getResPath(source);
+    const destResPath = getResPath(dest);
     
     for (const ext of sidecars) {
         const sourceSidecar = vscode.Uri.file(source.fsPath + ext);
         const destSidecar = vscode.Uri.file(dest.fsPath + ext);
 
         try {
-             await vscode.workspace.fs.stat(sourceSidecar);
+             const sidecarStat = await vscode.workspace.fs.stat(sourceSidecar);
              // If stat succeeds, file exists
+             
+             // Reset logic: Read, Patch, Write, Delete Old
              try {
-                await vscode.workspace.fs.rename(sourceSidecar, destSidecar, options);
+                const contentBytes = await vscode.workspace.fs.readFile(sourceSidecar);
+                let content = contentBytes.toString();
+
+                // If we have valid res:// paths, patch the content
+                if (sourceResPath && destResPath) {
+                    // Simple string replacement might be dangerous if path is substring of another
+                    // But for full paths in .import files [deps] source_file="...", it's usually safe.
+                    // We simply replace all occurrences.
+                    content = content.split(sourceResPath).join(destResPath);
+                }
+
+                await vscode.workspace.fs.writeFile(destSidecar, Buffer.from(content));
+                await vscode.workspace.fs.delete(sourceSidecar);
+                
              } catch (e) {
-                console.error(`Failed to move ${ext} file: ${e}`);
+                console.error(`Failed to patch/move ${ext} file: ${e}`);
+                // Fallback to simple rename if read/write fails
+                await vscode.workspace.fs.rename(sourceSidecar, destSidecar, options);
              }
         } catch {
             // Sidecar doesn't exist, ignore
