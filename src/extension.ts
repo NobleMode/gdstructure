@@ -64,7 +64,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('gdstructure.copyResPath', (item: GodotItem) => {
         const workspace = vscode.workspace.workspaceFolders?.[0];
-        if (!workspace) return;
+        if (!workspace) { return; }
         const relative = path.relative(workspace.uri.fsPath, item.fullPath);
         const resPath = 'res://' + relative.replace(/\\/g, '/');
         vscode.env.clipboard.writeText(resPath);
@@ -101,6 +101,89 @@ export function activate(context: vscode.ExtensionContext) {
     }),
     vscode.commands.registerCommand('gdstructure.unpinResource', async (item: GodotItem) => {
         await provider.unpinResource(item);
+    }),
+    vscode.commands.registerCommand('gdstructure.createFolder', async (item?: GodotItem) => {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (!workspace) { return; }
+        
+        let targetPath = workspace.uri.fsPath;
+        if (item) {
+             // If clicked on a file, create sibling. If folder, create child.
+             // Actually, the 'when' clause usually limits this, but safely fallback:
+            targetPath = item.isDir ? item.fullPath : path.dirname(item.fullPath);
+        }
+
+        const folderName = await vscode.window.showInputBox({
+            placeHolder: 'Folder Name',
+            prompt: `Create folder in ${path.basename(targetPath)}`
+        });
+        
+        if (folderName) {
+           const newUri = vscode.Uri.file(path.join(targetPath, folderName));
+           await vscode.workspace.fs.createDirectory(newUri);
+        }
+    }),
+    vscode.commands.registerCommand('gdstructure.createFile', async (item?: GodotItem) => {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (!workspace) { return; }
+        
+        let targetPath = workspace.uri.fsPath;
+        if (item) {
+            targetPath = item.isDir ? item.fullPath : path.dirname(item.fullPath);
+        }
+
+        const fileName = await vscode.window.showInputBox({
+            placeHolder: 'File Name (e.g. script.gd, shader.gdshader)',
+            prompt: `Create file in ${path.basename(targetPath)}`
+        });
+        
+        if (fileName) {
+           const newUri = vscode.Uri.file(path.join(targetPath, fileName));
+           let content = "";
+           
+           if (fileName.endsWith(".gd")) {
+               content = "extends Node\n\nfunc _ready():\n\tpass\n";
+           } else if (fileName.endsWith(".gdshader")) {
+               content = "shader_type canvas_item;\n\nvoid fragment() {\n\t\n}\n";
+           } else if (fileName.endsWith(".tscn")) {
+               // Minimal valid scene
+               content = '[gd_scene format=3 uid="uid://' + Math.random().toString(36).substring(2, 10) + '"]\n\n[node name="Node" type="Node"]\n';
+           }
+
+           await vscode.workspace.fs.writeFile(newUri, Buffer.from(content, 'utf8'));
+           vscode.commands.executeCommand('vscode.open', newUri);
+        }
+    }),
+    vscode.commands.registerCommand('gdstructure.duplicate', async (item: GodotItem) => {
+        const workspace = vscode.workspace.workspaceFolders?.[0];
+        if (!workspace) { return; }
+        
+        const oldName = path.basename(item.fullPath);
+        const ext = path.extname(oldName);
+        const nameBody = path.basename(oldName, ext);
+        const defaultName = `${nameBody}_copy${ext}`;
+
+        const newName = await vscode.window.showInputBox({
+            value: defaultName,
+            placeHolder: 'New Name',
+            prompt: `Duplicate ${oldName} to:`
+        });
+        
+        if (newName) {
+            const oldUri = vscode.Uri.file(item.fullPath);
+            const newUri = vscode.Uri.file(path.join(path.dirname(item.fullPath), newName));
+            await vscode.workspace.fs.copy(oldUri, newUri);
+        }
+    }),
+    vscode.commands.registerCommand('gdstructure.delete', async (item: GodotItem) => {
+        const confirm = await vscode.window.showWarningMessage(
+            `Delete ${item.label}?`,
+            { modal: true },
+            'Delete'
+        );
+        if (confirm === 'Delete') {
+            await vscode.workspace.fs.delete(vscode.Uri.file(item.fullPath), { recursive: true });
+        }
     })
   );
 

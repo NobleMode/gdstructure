@@ -74,10 +74,38 @@
         "title": "Toggle Godot Selection Sync",
         "category": "Godot",
         "icon": "$(sync)"
+      },
+      {
+        "command": "gdstructure.createFolder",
+        "title": "New Folder",
+        "category": "Godot",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "gdstructure.createFile",
+        "title": "New File",
+        "category": "Godot",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "gdstructure.duplicate",
+        "title": "Duplicate",
+        "category": "Godot",
+        "icon": "$(files)"
       }
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "gdstructure.createFile",
+          "group": "navigation",
+          "when": "view == gdstructure"
+        },
+        {
+          "command": "gdstructure.createFolder",
+          "group": "navigation",
+          "when": "view == gdstructure"
+        },
         {
           "command": "gdstructure.toggleAutoSync",
           "group": "navigation",
@@ -85,6 +113,16 @@
         }
       ],
       "view/item/context": [
+        {
+          "command": "gdstructure.createFile",
+          "when": "view == gdstructure && item.isDir",
+          "group": "navigation"
+        },
+        {
+          "command": "gdstructure.createFolder",
+          "when": "view == gdstructure && item.isDir",
+          "group": "navigation"
+        },
         {
           "command": "gdstructure.copyResPath",
           "when": "view == gdstructure",
@@ -112,6 +150,11 @@
         },
         {
           "command": "gdstructure.rename",
+          "when": "view == gdstructure",
+          "group": "edit"
+        },
+        {
+          "command": "gdstructure.duplicate",
           "when": "view == gdstructure",
           "group": "edit"
         },
