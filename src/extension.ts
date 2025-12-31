@@ -94,6 +94,7 @@ export function activate(context: vscode.ExtensionContext) {
             const oldUri = vscode.Uri.file(item.fullPath);
             const newUri = vscode.Uri.file(path.join(path.dirname(item.fullPath), newName));
             await vscode.workspace.fs.rename(oldUri, newUri);
+            provider.refresh();
         }
     }),
     vscode.commands.registerCommand('gdstructure.pinResource', async (item: GodotItem) => {
@@ -121,6 +122,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (folderName) {
            const newUri = vscode.Uri.file(path.join(targetPath, folderName));
            await vscode.workspace.fs.createDirectory(newUri);
+           provider.refresh();
         }
     }),
     vscode.commands.registerCommand('gdstructure.createFile', async (item?: GodotItem) => {
@@ -152,6 +154,7 @@ export function activate(context: vscode.ExtensionContext) {
 
            await vscode.workspace.fs.writeFile(newUri, Buffer.from(content, 'utf8'));
            vscode.commands.executeCommand('vscode.open', newUri);
+           provider.refresh();
         }
     }),
     vscode.commands.registerCommand('gdstructure.duplicate', async (item: GodotItem) => {
@@ -173,6 +176,7 @@ export function activate(context: vscode.ExtensionContext) {
             const oldUri = vscode.Uri.file(item.fullPath);
             const newUri = vscode.Uri.file(path.join(path.dirname(item.fullPath), newName));
             await vscode.workspace.fs.copy(oldUri, newUri);
+            provider.refresh();
         }
     }),
     vscode.commands.registerCommand('gdstructure.delete', async (item: GodotItem) => {
@@ -183,14 +187,12 @@ export function activate(context: vscode.ExtensionContext) {
         );
         if (confirm === 'Delete') {
             await vscode.workspace.fs.delete(vscode.Uri.file(item.fullPath), { recursive: true });
+            provider.refresh();
         }
     })
   );
 
   // 4. Auto-refresh on FS changes
-  const watcher = vscode.workspace.createFileSystemWatcher('**/*');
-  context.subscriptions.push(watcher);
-  
   let refreshTimer: NodeJS.Timeout | null = null;
   const refresh = () => {
       if (refreshTimer) {
@@ -201,10 +203,16 @@ export function activate(context: vscode.ExtensionContext) {
           refreshTimer = null;
       }, 100);
   };
-  
+
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0];
+  const pattern = workspaceRoot ? new vscode.RelativePattern(workspaceRoot, '**/*') : '**/*';
+  const watcher = vscode.workspace.createFileSystemWatcher(pattern);
+  context.subscriptions.push(watcher);
+      
   context.subscriptions.push(watcher.onDidCreate(refresh));
   context.subscriptions.push(watcher.onDidDelete(refresh));
   context.subscriptions.push(watcher.onDidChange(refresh));
+
   context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(e => {
       if (e.affectsConfiguration('gdstructure')) {
           refresh();

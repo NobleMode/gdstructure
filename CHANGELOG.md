@@ -2,6 +2,18 @@
 
 All notable changes to the "gdstructure" extension will be documented in this file.
 
+## [0.3.2]
+
+- **New Feature**: Added File Creation context menus (`New File` / `New Folder`).
+- **Smart Templates**: `.gd`, `.gdshader`, and `.tscn` files are created with valid boilerplate code.
+- **Duplicate**: Added capability to duplicate files via right-click.
+- **Improved**: File list now auto-refreshes reliably when files are created or modified.
+
+## [0.3.1]
+
+- **Fix**: Resolved context menu visibility issues for folders and pinned items.
+- **Fix**: Updated `when` clauses to support broader selection types.
+
 ## [0.3.0] - 2025-12-29
 ### Added
 - **Auto-Sync Selection**: Clicking files in VS Code now selects them in the Godot Editor (TCP).

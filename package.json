@@ -2,7 +2,7 @@
   "name": "gdstructure",
   "displayName": "gdstructure",
   "description": " Godot-style res:// explorer for VS Code",
-  "version": "0.3.0",
+  "version": "0.3.2",
   "publisher": "NobleMode",
   "repository": {
     "type": "git",
@@ -115,12 +115,12 @@
       "view/item/context": [
         {
           "command": "gdstructure.createFile",
-          "when": "view == gdstructure && item.isDir",
+          "when": "view == gdstructure && viewItem =~ /folder|file|pinned-file/",
           "group": "navigation"
         },
         {
           "command": "gdstructure.createFolder",
-          "when": "view == gdstructure && item.isDir",
+          "when": "view == gdstructure && viewItem =~ /folder|file|pinned-file/",
           "group": "navigation"
         },
         {
